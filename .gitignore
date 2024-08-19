@@ -5,3 +5,4 @@ ca-certificate.crt
 dev.nix .idx
 launch.json
 .vscode
+.idea
