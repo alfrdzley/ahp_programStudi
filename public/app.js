@@ -63,7 +63,6 @@ async function loadPrograms() {
         }
 
         const programs = await response.json();
-        console.log("Programs loaded:", programs);
 
         // Initialize DataTables
         $(document).ready(function () {
