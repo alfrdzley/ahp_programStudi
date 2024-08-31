@@ -8,9 +8,13 @@ const fs = require("fs");
 const { Parser } = require("json2csv");
 const dotenv = require("dotenv");
 const NodeCache = require("node-cache");
+const compression = require("compression");
 
 const app = express();
-const port = 3000;
+const port = 3001;
+
+// compress all responses
+app.use(compression());
 
 const upload = multer({ dest: "uploads/" });
 
@@ -76,9 +80,9 @@ app.get("/programs/:id", (req, res) => {
   const { id } = req.params;
   const cacheKey = `program-${id}`;
   const cachedData = cache.get(cacheKey);
-    if (cachedData) {
+  if (cachedData) {
     console.log("Data from cache");
-    }
+  }
   connection.query(
     "SELECT * FROM program_studi WHERE id = ?",
     [id],
