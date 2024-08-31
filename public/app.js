@@ -13,14 +13,14 @@ document
             document.getElementById("student_interest").value
         );
 
-        console.log("Adding program:", {
-            nama,
-            demand,
-            cost,
-            resources,
-            academic_relevance,
-            student_interest,
-        });
+        // console.log("Adding program:", {
+        //     nama,
+        //     demand,
+        //     cost,
+        //     resources,
+        //     academic_relevance,
+        //     student_interest,
+        // });
 
         try {
             const response = await fetch("/programs", {
@@ -54,16 +54,11 @@ async function loadPrograms() {
     try {
         const response = await fetch("/programs");
         if (!response.ok) {
-            console.error(
-                "Failed to load programs",
-                response.status,
-                response.statusText
-            );
+            console.error("Failed to load programs", response.status, response.statusText);
             return;
         }
 
         const programs = await response.json();
-        console.log("Programs loaded:", programs);
 
         // Initialize DataTables
         $(document).ready(function () {
@@ -95,8 +90,11 @@ async function loadPrograms() {
         const scores = programs.map((p) => p.skor_akhir);
 
         const maxScore = Math.max(...scores);
+        const minScore = Math.min(...scores);
         const bestProgramIndex = scores.indexOf(maxScore);
+        const worstProgramIndex = scores.indexOf(minScore);
         const bestProgramName = names[bestProgramIndex];
+        const worstProgramName = names[worstProgramIndex];
 
         const canvas = document.getElementById("myChart");
         const ctx = canvas.getContext("2d");
@@ -114,7 +112,8 @@ async function loadPrograms() {
                         label: "Skor Akhir",
                         data: scores,
                         backgroundColor: scores.map((score) =>
-                            score === maxScore ? "red" : "skyblue"
+                            score === maxScore ? "green" :
+                                score === minScore ? "red" : "skyblue"
                         ),
                     },
                 ],
@@ -128,7 +127,7 @@ async function loadPrograms() {
                 plugins: {
                     title: {
                         display: true,
-                        text: `Program Studi Terbaik: ${bestProgramName}`,
+                        text: `Program Studi Terbaik: ${bestProgramName} | Program Studi Terburuk: ${worstProgramName}`,
                     },
                 },
             },
@@ -137,6 +136,7 @@ async function loadPrograms() {
         console.error("Error loading programs:", error);
     }
 }
+
 
 function showModal(message) {
     const modalBody = document.getElementById("modal-body-text");

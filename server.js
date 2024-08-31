@@ -7,9 +7,14 @@ const csv = require("csv-parser");
 const fs = require("fs");
 const { Parser } = require("json2csv");
 const dotenv = require("dotenv");
+const NodeCache = require("node-cache");
+const compression = require("compression");
 
 const app = express();
-const port = 3000;
+const port = 3001;
+
+// compress all responses
+app.use(compression());
 
 const upload = multer({ dest: "uploads/" });
 
@@ -33,6 +38,9 @@ app.use(express.static(path.join(__dirname, "public")));
 // Set EJS as templating engine
 app.set("view engine", "ejs");
 
+// intialize cache with a TTL of 100 seconds, checkperiod of 120 seconds, and a maximum of 1000 keys
+const cache = new NodeCache({ stdTTL: 100, checkperiod: 120, maxKeys: 1000 });
+
 // Calculate final score
 function calculateScore(
   demand,
@@ -55,17 +63,26 @@ function calculateScore(
 // Routes
 app.get("/programs", (req, res) => {
   connection.query("SELECT * FROM program_studi", (err, results) => {
+    const cacheKey = "programs";
+    const cachedData = cache.get(cacheKey);
+
     if (err) {
       console.error("Error fetching data:", err);
       res.status(500).send("Internal Server Error");
       return;
     }
+    cache.set(cacheKey, results);
     res.json(results);
   });
 });
 
 app.get("/programs/:id", (req, res) => {
   const { id } = req.params;
+  const cacheKey = `program-${id}`;
+  const cachedData = cache.get(cacheKey);
+  if (cachedData) {
+    console.log("Data from cache");
+  }
   connection.query(
     "SELECT * FROM program_studi WHERE id = ?",
     [id],
@@ -79,6 +96,7 @@ app.get("/programs/:id", (req, res) => {
         res.status(404).send("Program not found");
         return;
       }
+      cache.set(cacheKey, results[0]);
       res.json(results[0]);
     }
   );
